@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纯退费系统</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .refund-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .refund-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .refund-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .refund-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .upload-section {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .upload-section h2 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .upload-box {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .upload-item {
+            flex: 1;
+        }
+
+        .upload-label {
+            display: block;
+            padding: 40px 20px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+
+        .upload-label:hover {
+            border-color: #4a90d9;
+            background: #f0f7ff;
+        }
+
+        .upload-label.dragover {
+            border-color: #4a90d9;
+            background: #e6f0ff;
+        }
+
+        .upload-label .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-label .text {
+            display: block;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .upload-label .hint {
+            display: block;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .upload-input {
+            display: none;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #666;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-info .file-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .action-section {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .process-btn {
+            padding: 14px 40px;
+            background: linear-gradient(135deg, #4a90d9 0%, #3a7bc8 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(74, 144, 217, 0.3);
+        }
+
+        .process-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(74, 144, 217, 0.4);
+        }
+
+        .process-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .result-section {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-header h2 {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .result-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .result-stat {
+            text-align: center;
+        }
+
+        .result-stat .value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #4a90d9;
+        }
+
+        .result-stat .label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .result-table th,
+        .result-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-table th {
+            background: #f8f8f8;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .result-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .result-table .amount {
+            color: #ff6b6b;
+            font-weight: 500;
+        }
+
+        .total-row {
+            background: #f5f5f5 !important;
+        }
+
+        .total-row td {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .export-btn {
+            padding: 10px 20px;
+            background: #52c41a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .export-btn:hover {
+            background: #389e0d;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4a90d9;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .error-message {
+            padding: 15px;
+            background: #fff1f0;
+            border: 1px solid #ffccc7;
+            border-radius: 6px;
+            color: #ff4d4f;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .info-message {
+            padding: 15px;
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 6px;
+            color: #1890ff;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="refund-container">
+        <div class="refund-header">
+            <h1>💰 纯退费系统</h1>
+            <p>上传缴费和退费Excel文件，系统自动处理并输出纯退费明细</p>
+        </div>
+
+        <div class="upload-section">
+            <h2>📁 上传数据源</h2>
+            <div class="info-message">
+                <strong>操作说明：</strong>请分别上传缴费Excel和退费Excel文件，系统会对比两个文件中姓名出现的次数，统计次数相等的数据对应的退费金额，最终输出纯退费明细。
+            </div>
+            
+            <div class="upload-box">
+                <div class="upload-item">
+                    <label id="payment-label" class="upload-label" for="payment-file">
+                        <span class="icon">📊</span>
+                        <span class="text">点击或拖拽上传缴费Excel</span>
+                        <span class="hint">支持 .xlsx / .xls 格式</span>
+                    </label>
+                    <input type="file" id="payment-file" class="upload-input" accept=".xlsx,.xls">
+                    <div id="payment-info" class="file-info">
+                        <span class="file-name" id="payment-file-name"></span>
+                    </div>
+                </div>
+
+                <div class="upload-item">
+                    <label id="refund-label" class="upload-label" for="refund-file">
+                        <span class="icon">💸</span>
+                        <span class="text">点击或拖拽上传退费Excel</span>
+                        <span class="hint">支持 .xlsx / .xls 格式</span>
+                    </label>
+                    <input type="file" id="refund-file" class="upload-input" accept=".xlsx,.xls">
+                    <div id="refund-info" class="file-info">
+                        <span class="file-name" id="refund-file-name"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="error-message" id="upload-error"></div>
+        </div>
+
+        <div class="action-section">
+            <button class="process-btn" id="process-btn" disabled>
+                🚀 开始处理
+            </button>
+        </div>
+
+        <div class="result-section" id="result-section">
+            <div class="result-header">
+                <h2>📋 纯退费明细</h2>
+                <div class="result-stats">
+                    <div class="result-stat">
+                        <div class="value" id="total-count">0</div>
+                        <div class="label">课次</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="value" id="unique-count">0</div>
+                        <div class="label">人数</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="value" id="total-amount">¥ 0.00</div>
+                        <div class="label">总金额</div>
+                    </div>
+                </div>
+                <button class="export-btn" id="export-btn" onclick="exportToExcel()">
+                    📥 导出Excel
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table class="result-table" id="result-table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>姓名</th>
+                            <th>班级</th>
+                            <th>退费金额</th>
+                            <th>退费时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="result-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">正在处理数据...</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script>
+        let paymentFile = null;
+        let refundFile = null;
+        let paymentData = null;
+        let refundData = null;
+
+        const paymentInput = document.getElementById('payment-file');
+        const refundInput = document.getElementById('refund-file');
+        const paymentLabel = document.getElementById('payment-label');
+        const refundLabel = document.getElementById('refund-label');
+        const paymentInfo = document.getElementById('payment-info');
+        const refundInfo = document.getElementById('refund-info');
+        const paymentFileName = document.getElementById('payment-file-name');
+        const refundFileName = document.getElementById('refund-file-name');
+        const processBtn = document.getElementById('process-btn');
+        const resultSection = document.getElementById('result-section');
+        const resultBody = document.getElementById('result-body');
+        const totalCount = document.getElementById('total-count');
+        const totalAmount = document.getElementById('total-amount');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const uploadError = document.getElementById('upload-error');
+
+        paymentInput.addEventListener('change', (e) => {
+            handleFileSelect(e, 'payment');
+        });
+
+        refundInput.addEventListener('change', (e) => {
+            handleFileSelect(e, 'refund');
+        });
+
+        paymentLabel.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            paymentLabel.classList.add('dragover');
+        });
+
+        paymentLabel.addEventListener('dragleave', () => {
+            paymentLabel.classList.remove('dragover');
+        });
+
+        paymentLabel.addEventListener('drop', (e) => {
+            e.preventDefault();
+            paymentLabel.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                paymentInput.files = files;
+                handleFileSelect({ target: paymentInput }, 'payment');
+            }
+        });
+
+        refundLabel.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            refundLabel.classList.add('dragover');
+        });
+
+        refundLabel.addEventListener('dragleave', () => {
+            refundLabel.classList.remove('dragover');
+        });
+
+        refundLabel.addEventListener('drop', (e) => {
+            e.preventDefault();
+            refundLabel.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                refundInput.files = files;
+                handleFileSelect({ target: refundInput }, 'refund');
+            }
+        });
+
+        function handleFileSelect(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileName = file.name;
+            const extension = fileName.split('.').pop().toLowerCase();
+            
+            if (extension !== 'xlsx' && extension !== 'xls') {
+                showError('请上传Excel文件（.xlsx 或 .xls 格式）');
+                event.target.value = '';
+                return;
+            }
+
+            hideError();
+
+            if (type === 'payment') {
+                paymentFile = file;
+                paymentFileName.textContent = fileName;
+                paymentInfo.classList.add('show');
+            } else {
+                refundFile = file;
+                refundFileName.textContent = fileName;
+                refundInfo.classList.add('show');
+            }
+
+            checkFilesReady();
+        }
+
+        function checkFilesReady() {
+            processBtn.disabled = !(paymentFile && refundFile);
+        }
+
+        function showError(message) {
+            uploadError.textContent = message;
+            uploadError.classList.add('show');
+        }
+
+        function hideError() {
+            uploadError.classList.remove('show');
+        }
+
+        processBtn.addEventListener('click', async () => {
+            if (!paymentFile || !refundFile) return;
+
+            showLoading(true);
+            hideError();
+
+            try {
+                paymentData = await readExcelFile(paymentFile);
+                refundData = await readExcelFile(refundFile);
+
+                const result = processRefundData(paymentData, refundData);
+                
+                displayResult(result);
+            } catch (error) {
+                console.error('处理失败:', error);
+                showError('处理失败：' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        function readExcelFile(file) {
+            return new Promise((resolve, reject) => {
+                if (typeof XLSX === 'undefined') {
+                    return reject(new Error('Excel处理库未加载，请刷新页面重试'));
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        console.log('开始解析文件:', file.name);
+                        
+                        const arrayBuffer = e.target.result;
+                        if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+                            return reject(new Error('文件内容为空'));
+                        }
+                        
+                        const data = new Uint8Array(arrayBuffer);
+                        console.log('文件大小:', data.length, 'bytes');
+                        
+                        const workbook = XLSX.read(data, { 
+                            type: 'array',
+                            cellDates: true,
+                            raw: false
+                        });
+                        
+                        console.log('工作簿信息:', {
+                            sheetCount: workbook.SheetNames.length,
+                            sheets: workbook.SheetNames
+                        });
+                        
+                        if (workbook.SheetNames.length === 0) {
+                            return reject(new Error('Excel文件中没有工作表'));
+                        }
+                        
+                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                        if (!worksheet) {
+                            return reject(new Error('无法读取第一个工作表'));
+                        }
+                        
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        console.log('解析到行数:', jsonData.length);
+                        
+                        if (!jsonData || jsonData.length === 0) {
+                            return reject(new Error('工作表数据为空'));
+                        }
+                        
+                        resolve(parseExcelData(jsonData));
+                    } catch (error) {
+                        console.error('解析Excel错误:', error);
+                        reject(new Error('解析Excel文件失败: ' + error.message));
+                    }
+                };
+                reader.onerror = (evt) => {
+                    console.error('文件读取错误:', evt);
+                    reject(new Error('读取文件失败: ' + evt.target.error?.message || '未知错误'));
+                };
+                reader.onabort = () => {
+                    reject(new Error('文件读取被中止'));
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function parseExcelData(jsonData) {
+            if (!jsonData || jsonData.length < 1) {
+                throw new Error('Excel文件数据为空');
+            }
+
+            console.log('原始数据行数:', jsonData.length);
+            console.log('前3行数据:', jsonData.slice(0, 3));
+
+            let headerRowIndex = 0;
+            let headers = [];
+            
+            for (let i = 0; i < Math.min(5, jsonData.length); i++) {
+                const row = jsonData[i];
+                if (!row) continue;
+                
+                const rowHeaders = row.map(h => String(h || '').trim());
+                const hasName = rowHeaders.some(h => h.includes('姓名') || h.includes('名字'));
+                
+                if (hasName) {
+                    headerRowIndex = i;
+                    headers = rowHeaders;
+                    console.log('找到表头行，索引:', headerRowIndex);
+                    break;
+                }
+            }
+
+            if (headers.length === 0) {
+                throw new Error('未找到表头行，请确保Excel包含姓名列');
+            }
+
+            const nameIndex = headers.findIndex(h => h.includes('姓名') || h.includes('名字'));
+            const classIndex = headers.findIndex(h => h.includes('班级') || h.includes('班') || h.includes('课程') || h.includes('班级名称'));
+            const amountIndex = headers.findIndex(h => h.includes('金额') || h.includes('费用') || h.includes('钱') || h.includes('退费') || h.includes('应收'));
+            const timeIndex = headers.findIndex(h => h.includes('最后修改时间') || h.includes('修改时间') || h.includes('退费时间') || h.includes('时间') || h.includes('收费时间'));
+
+            console.log('列索引:', { nameIndex, classIndex, amountIndex, timeIndex });
+            console.log('表头:', headers);
+
+            if (nameIndex === -1) {
+                throw new Error('未找到姓名列，请确保Excel包含姓名列');
+            }
+
+            const data = [];
+            const startRow = headerRowIndex + 1;
+            
+            for (let i = startRow; i < jsonData.length; i++) {
+                const row = jsonData[i];
+                if (!row || !row[nameIndex]) continue;
+
+                const name = String(row[nameIndex]).trim();
+                if (!name) continue;
+
+                data.push({
+                    name: name,
+                    className: classIndex >= 0 ? String(row[classIndex] || '').trim() : '',
+                    amount: amountIndex >= 0 ? parseAmount(row[amountIndex]) : 0,
+                    refundTime: timeIndex >= 0 ? formatTime(row[timeIndex]) : ''
+                });
+            }
+
+            console.log('解析到数据行数:', data.length);
+            return data;
+        }
+
+        function formatTime(value) {
+            if (!value) return '';
+            
+            if (typeof value === 'number') {
+                const excelDate = value < 60 ? value - 1 : value - 2;
+                const jsDate = new Date(Math.round((excelDate - 25569) * 86400 * 1000));
+                return jsDate.toLocaleString('zh-CN');
+            }
+            
+            const str = String(value).trim();
+            if (str.includes('T')) {
+                return str.replace('T', ' ').substring(0, 19);
+            }
+            
+            return str;
+        }
+
+        function parseAmount(value) {
+            if (typeof value === 'number') return value;
+            const str = String(value).replace(/[^0-9.]/g, '');
+            return parseFloat(str) || 0;
+        }
+
+        function processRefundData(paymentData, refundData) {
+            const paymentNameCounts = {};
+            const refundNameCounts = {};
+            const refundDetails = {};
+
+            paymentData.forEach(item => {
+                paymentNameCounts[item.name] = (paymentNameCounts[item.name] || 0) + 1;
+            });
+
+            refundData.forEach(item => {
+                refundNameCounts[item.name] = (refundNameCounts[item.name] || 0) + 1;
+                
+                if (!refundDetails[item.name]) {
+                    refundDetails[item.name] = [];
+                }
+                refundDetails[item.name].push({
+                    className: item.className,
+                    amount: item.amount,
+                    refundTime: item.refundTime
+                });
+            });
+
+            const pureRefund = [];
+            Object.keys(refundNameCounts).forEach(name => {
+                if (paymentNameCounts[name] === refundNameCounts[name]) {
+                    const details = refundDetails[name];
+                    details.forEach(detail => {
+                        pureRefund.push({
+                            name: name,
+                            className: detail.className,
+                            amount: detail.amount,
+                            refundTime: detail.refundTime
+                        });
+                    });
+                }
+            });
+
+            return pureRefund;
+        }
+
+        function displayResult(data) {
+            resultBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                resultBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#999;">未找到符合条件的纯退费数据</td></tr>';
+                totalCount.textContent = '0';
+                document.getElementById('unique-count').textContent = '0';
+                totalAmount.textContent = '¥ 0.00';
+                resultSection.classList.add('show');
+                return;
+            }
+
+            let total = 0;
+            const uniqueNames = new Set();
+            
+            data.forEach((item, index) => {
+                total += item.amount;
+                uniqueNames.add(item.name);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td>${item.className || '-'}</td>
+                    <td class="amount">¥ ${item.amount.toFixed(2)}</td>
+                    <td>${item.refundTime || '-'}</td>
+                `;
+                resultBody.appendChild(row);
+            });
+
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'total-row';
+            totalRow.innerHTML = `
+                <td colspan="4" style="text-align:right;">合计</td>
+                <td class="amount">¥ ${total.toFixed(2)}</td>
+            `;
+            resultBody.appendChild(totalRow);
+
+            totalCount.textContent = data.length;
+            document.getElementById('unique-count').textContent = uniqueNames.size;
+            totalAmount.textContent = '¥ ' + total.toFixed(2);
+            resultSection.classList.add('show');
+        }
+
+        function showLoading(show) {
+            loadingOverlay.classList.toggle('show', show);
+        }
+
+        function exportToExcel() {
+            const table = document.getElementById('result-table');
+            if (!table) return;
+
+            const wb = XLSX.utils.table_to_book(table);
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            
+            const blob = new Blob([wbout], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '纯退费明细_' + new Date().toISOString().split('T')[0] + '.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+    
+    </body>
+</html>

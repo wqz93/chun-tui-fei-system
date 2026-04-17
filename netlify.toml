@@ -1,0 +1,8 @@
+[build]
+  publish = "web"
+  command = "echo 'Build complete'"
+
+[[redirects]]
+  from = "/*"
+  to = "/refund.html"
+  status = 200
