@@ -396,8 +396,10 @@
                             <th>序号</th>
                             <th>姓名</th>
                             <th>班级</th>
+                            <th>手机号码</th>
                             <th>退费金额</th>
                             <th>退费时间</th>
+                            <th>退费原因</th>
                         </tr>
                     </thead>
                     <tbody id="result-body">
@@ -643,6 +645,8 @@
             const classIndex = headers.findIndex(h => h.includes('班级') || h.includes('班') || h.includes('课程') || h.includes('班级名称'));
             const amountIndex = headers.findIndex(h => h.includes('金额') || h.includes('费用') || h.includes('钱') || h.includes('退费') || h.includes('应收'));
             const timeIndex = headers.findIndex(h => h.includes('最后修改时间') || h.includes('修改时间') || h.includes('退费时间') || h.includes('时间') || h.includes('收费时间'));
+            const phoneIndex = headers.findIndex(h => h.includes('联系方式') || h.includes('联系电话') || h.includes('电话') || h.includes('手机') || h.includes('手机号'));
+            const reasonIndex = headers.findIndex(h => h.includes('退费理由') || h.includes('退费原因') || h.includes('原因') || h.includes('理由'));
 
             console.log('列索引:', { nameIndex, classIndex, amountIndex, timeIndex });
             console.log('表头:', headers);
@@ -665,7 +669,9 @@
                     name: name,
                     className: classIndex >= 0 ? String(row[classIndex] || '').trim() : '',
                     amount: amountIndex >= 0 ? parseAmount(row[amountIndex]) : 0,
-                    refundTime: timeIndex >= 0 ? formatTime(row[timeIndex]) : ''
+                    refundTime: timeIndex >= 0 ? formatTime(row[timeIndex]) : '',
+                    phone: phoneIndex >= 0 ? String(row[phoneIndex] || '').trim() : '',
+                    reason: reasonIndex >= 0 ? String(row[reasonIndex] || '').trim() : ''
                 });
             }
 
@@ -714,7 +720,9 @@
                 refundDetails[item.name].push({
                     className: item.className,
                     amount: item.amount,
-                    refundTime: item.refundTime
+                    refundTime: item.refundTime,
+                    phone: item.phone,
+                    reason: item.reason
                 });
             });
 
@@ -727,7 +735,9 @@
                             name: name,
                             className: detail.className,
                             amount: detail.amount,
-                            refundTime: detail.refundTime
+                            refundTime: detail.refundTime,
+                            phone: detail.phone,
+                            reason: detail.reason
                         });
                     });
                 }
@@ -740,7 +750,7 @@
             resultBody.innerHTML = '';
             
             if (data.length === 0) {
-                resultBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#999;">未找到符合条件的纯退费数据</td></tr>';
+                resultBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">未找到符合条件的纯退费数据</td></tr>';
                 totalCount.textContent = '0';
                 document.getElementById('unique-count').textContent = '0';
                 totalAmount.textContent = '¥ 0.00';
@@ -760,8 +770,10 @@
                     <td>${index + 1}</td>
                     <td>${item.name}</td>
                     <td>${item.className || '-'}</td>
+                    <td>${item.phone || '-'}</td>
                     <td class="amount">¥ ${item.amount.toFixed(2)}</td>
                     <td>${item.refundTime || '-'}</td>
+                    <td>${item.reason || '-'}</td>
                 `;
                 resultBody.appendChild(row);
             });
@@ -769,7 +781,7 @@
             const totalRow = document.createElement('tr');
             totalRow.className = 'total-row';
             totalRow.innerHTML = `
-                <td colspan="4" style="text-align:right;">合计</td>
+                <td colspan="6" style="text-align:right;">合计</td>
                 <td class="amount">¥ ${total.toFixed(2)}</td>
             `;
             resultBody.appendChild(totalRow);
